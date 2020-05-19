@@ -25,6 +25,11 @@
 
       }
     },
+    computed: {
+      username() {
+        return this.$route.params.username
+      }
+    },
     methods: {
       deleteTodo(id) {
         axios.delete(`https://jsonplaceholder.typicode.com/todos/${id}`,{
@@ -47,6 +52,9 @@
       axios.get('https://jsonplaceholder.typicode.com/todos?_limit=5')
               .then(res => this.todos = res.data)
               .catch(err => console.log(err));
+    },
+    goBack() {
+      window.history.length > 1 ? this.$router.go(-1) : this.$router.push('/')
     }
   }
 </script>
