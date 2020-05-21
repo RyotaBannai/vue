@@ -5,6 +5,7 @@ import App from './App.vue'
 // const App = () => import('./App.vue');
 const About = () => import('./views/About');
 const Home = () => import('./views/Home');
+const Playground = () => import('./views/Playground');
 
 import Router from 'vue-router'
 
@@ -19,6 +20,7 @@ const router = new Router({
   routes:[
     { path: '/', name:'home', component: Home },
     { path: '/about', name:'about', component: About },
+    { path: '/playground', name:'playground', component: Playground },
   ],
   scrollBehavior (to, from, savedPosition) {
     if (savedPosition) {

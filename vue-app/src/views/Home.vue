@@ -9,20 +9,19 @@
 
   import Todos from "../components/Todos";
   import AddTodo from "../components/AddTodo";
+
   import axios from "axios"
 
   export default {
     name: 'App',
     components: {
-      AddTodo,
-      Todos
-
+        AddTodo,
+        Todos,
     },
     data() {
       return {
         todos: [
         ]
-
       }
     },
     computed: {
@@ -32,7 +31,7 @@
     },
     methods: {
       deleteTodo(id) {
-        axios.delete(`https://jsonplaceholder.typicode.com/todos/${id}`,{
+        axios.delete(`https://jsonplaceholder.typicode.com/todos/${id}`, {
           mode: 'cors'
         })
                 .then(() => this.todos = this.todos.filter(todo => todo.id !== id))
