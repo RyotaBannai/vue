@@ -4,7 +4,8 @@
         <div id="nav">
             <router-link to="/">Home</router-link> |
             <router-link to="/about">About</router-link> |
-            <router-link to="/playground">Playground</router-link>
+            <router-link to="/playground">Playground</router-link> |
+            <router-link :to="{name:'post', params: {id: 1}}">Post</router-link>
         </div>
     </header>
 </template>

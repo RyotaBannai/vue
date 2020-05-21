@@ -6,6 +6,10 @@ import App from './App.vue'
 const About = () => import('./views/About');
 const Home = () => import('./views/Home');
 const Playground = () => import('./views/Playground');
+const Post = () => import('./views/Post');
+const SubContent = () => import('./views/SubContent');
+const Comment = () => import('./views/Comment');
+const Nologic = () => import('./views/Nologic');
 
 import Router from 'vue-router'
 
@@ -18,9 +22,31 @@ Vue.use(Router);
 const router = new Router({
   mode: 'history',
   routes:[
-    { path: '/', name:'home', component: Home },
-    { path: '/about', name:'about', component: About },
-    { path: '/playground', name:'playground', component: Playground },
+      { path: '/', name:'home', component: Home },
+      { path: '/about', name:'about', component: About },
+      { path: '/playground', name:'playground', component: Playground },
+      {
+        // post/ とマッチ
+        path: '/post', component: Nologic },
+      {
+        path: '/post/:id', name:'post', component: Post,
+        children:[
+            {   // post/:id/comment とマッチ
+                // 注意：Comment は **Post の** <router-view> 内部で描画される
+                path: 'comment',
+                components: {
+                    default: Comment,
+                    sub: SubContent
+                },
+            },
+            {
+                // post/:id とマッチ
+                // this is just for fallback.
+                path: '', component: Nologic
+            }
+        ]
+    },
+      { path: '*', name:'notfound', component: Nologic },
   ],
   scrollBehavior (to, from, savedPosition) {
     if (savedPosition) {
