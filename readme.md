@@ -1,4 +1,5 @@
 ## Vue
+- `ディレクティブ`: v-if, v-bind, v-modelなどのhtml上にロジックを埋めるためのコード
 #### `vue router` 使い方
 - `<router-view/>`は対象componentsの描画する役割があるため、`root component`(`App.vue`)に置いておく。コンポネントベース実装の`main content`のようなもの。再利用するもの（ `header` `fooder`）は、 `<router-view/>`の周りにおいておく。
 - `<router-view/>`を置いてやってあとは、`<router-link>`でリンクを作ればいい感じに飛び回れる。
@@ -60,4 +61,101 @@ export default new Router({
 - domを作っただけで、export default してない時のエラー。
 ```
 using the runtime-only build of Vue where the template compiler is not available. Either pre-compile the templates into render functions, or use the compiler-included build.
+```
+
+#### Slots フォールバックコンテンツ
+- コンテンツがない場合にだけ描画されるフォールバック (つまり、デフォルトの) コンテンツ
+```html
+# child vue
+<button type="submit">
+    <slot>Submit</slot>
+</button>
+```
+```html
+# parent vue スロット指定しない-> デフォルトのslot適用 つまりSubmitを表示
+<Button></Button>
+# parent vue スロット指定-> Saveを表示
+<Button>Save</Button>
+```
+#### Named slots
+- 複数のslotsを扱う際には `parents component` の中で`v-slot:XXXX`を使うと良い。`<template>` に対して `<template v-slot:XXXX><template>`　として使う。
+- 。v-slot を使った <template> で囲まれて`いない`コンテンツは、`デフォルトスロット`に対するものだとみなされます。
+- `child component`では　`<slot name="XXXX"></slot>` とする。
+- name を指定しないときは、`default`になる。（**slotが一つのみに限る**）
+#### Scoped slots
+- スロットコンテンツから、子コンポーネントの中だけで利用可能なデータにアクセスできると便利。ただ次の例は間違いで、というのもuser にアクセスすることができるのは `<current-user>` コンポーネントだけで、ここで指定しているコンテンツは**親コンポーネントで描画されるから**です。つまり、child data をparentから使いたいときは別の方法をとる。
+```html
+# child
+<span>
+  <slot>{{ user.lastName }}</slot>
+</span>
+# parent
+<current-user>
+  {{ user.firstName }}
+</current-user>
+```
+- childのslotにv-bindでデータをつける。これを`スロットプロパティ`という。以下の例の`slotProps`は任意の変数。
+```html
+# child
+<span>
+  <slot v-bind:user="user">
+    {{ user.lastName }}
+  </slot>
+</span>
+# parent
+<current-user>
+  <template v-slot:default="slotProps">
+    {{ slotProps.user.firstName }}
+  </template>
+</current-user>
+```
+#### `default`だけの時の省略記法。
+```html
+<current-user v-slot:default="slotProps">
+  {{ slotProps.user.firstName }}
+</current-user>
+```
+```html
+<current-user v-slot="slotProps">
+  {{ slotProps.user.firstName }}
+</current-user>
+```
+#### 分割代入 Destructing Assignment
+- 実は`スロットプロパティ`は分割代入するととができる。つまり使うプロパティのみ取得できるようにする。user プロパティのみを取得。
+```html
+<current-user v-slot="{ user }">
+  {{ user.firstName }}
+</current-user>
+```
+- rename version.
+```html
+<current-user v-slot="{ user: person }">
+  {{ person.firstName }}
+</current-user>
+```
+- フォールバックを指定。
+```html
+<current-user v-slot="{ user = { firstName: 'Guest' } }">
+  {{ user.firstName }}
+</current-user>
+```
+#### ディレクティの動的引数 v-slot : `動的なスロット名の定義`が可能
+- dynamicSlotNameをdata(){} とかで指定する。
+```html
+<base-layout>
+  <template v-slot:[dynamicSlotName]>
+    ...
+  </template>
+</base-layout>
+```
+#### 名前付きスロットの省略記法
+- v-on や v-bind と同様に v-slot にも省略記法があり、引数の前のすべての部分 (v-slot:) を特別な記号 `#` で置き換えます。例えば、v-slot:header は #header に書き換えることができます:
+```html
+<base-layout>
+  <template #XXXX>...</template>
+</base-layout>
+```
+- defaultの場合は、`#default`
+```html
+<template #main="{ user }"></template>
 ```
