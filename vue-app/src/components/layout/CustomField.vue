@@ -6,7 +6,8 @@
 
 <script>
     export default {
-        name: "CustomField"
+        name: "CustomField",
+
     }
 </script>
 
