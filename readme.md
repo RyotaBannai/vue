@@ -1,6 +1,39 @@
 ## Vue
-- `ディレクティブ`: v-if, v-bind, v-modelなどのhtml上にロジックを埋めるためのコード
-#### `vue router` 使い方
+- `ディレクティブ`: v-if, v-bind, v-modelなどのhtml上にロジックを埋めるためのコード（`データバインディング`）もっとも基本的な形は、`Mustache` 構文(`二重中括弧`)を利用したテキスト展開
+- 動的引数: `in-DOM テンプレート` (HTML ファイルに直接書かれるテンプレート) を使う場合、ブラウザが強制的に属性名を小文字にするため、キー名を大文字にするのは避ける
+```javascript
+// in-DOM テンプレートの中では、v-bind:[someattr] に変換されます
+<a v-bind:[someAttr]="value"> ... </a>
+```
+- 基本的には property をbindするか、eventを登録するか。
+```javascript
+<!-- 完全な構文 -->
+<a v-bind:href="url"> ... </a>
+
+<!-- 省略記法 -->
+<a :href="url"> ... </a>
+
+<!-- 動的引数の省略記法 (2.6.0 以降) -->
+<a :[key]="url"> ... </a>
+```
+```javascript
+<!-- 完全な構文 -->
+<a v-on:click="doSomething"> ... </a>
+
+<!-- 省略記法 -->
+<a @click="doSomething"> ... </a>
+
+<!-- 動的引数の省略記法 (2.6.0 以降) -->
+<a @[event]="doSomething"> ... </a>
+```
+#### computed 算出プロパティ
+- マスタッシュ内コードの複雑なロジックをまとめる
+- 算出プロパティは`リアクティブな依存関係にもとづきキャッシュされる`という違いがあります。算出プロパティは、`リアクティブな依存関係が更新されたときにだけ再評価`されます。これはつまり、message が変わらない限りは、reversedMessage に何度アクセスしても、関数を再び実行することなく以前計算された結果を即時に返すということです。対称的に、`メソッド呼び出し`は、再描画が起きると常に関数を実行します
+- 算出プロパティはデフォルトでは getter 関数のみですが、必要があれば setter 関数も使えます:
+#### ウォッチャ
+- データが変わるのに応じて`非同期`や`コストの高い処理を実行したいとき`に最も便利です。
+- 非同期処理( API のアクセス)の実行や、処理をどのくらいの頻度で実行するかを制御したり、最終的な answer が取得できるまでは中間の状態にしておく、といったことが可能になっています。`これらはいずれも算出プロパティでは実現できません`。
+### `vue router` 使い方
 - vue-router のデフォルトは hash モード - 完全な URL を hash を使ってシミュレートし、 URL が変更された時にページのリロードが起きません。
 - `<router-view/>`は対象componentsの描画する役割があるため、`root component`(`App.vue`)に置いておく。コンポネントベース実装の`main content`のようなもの。再利用するもの（ `header` `fooder`）は、 `<router-view/>`の周りにおいておく。
 - `<router-view/>`を置いてやってあとは、`<router-link>`でリンクを作ればいい感じに飛び回れる。(`宣言的なナビゲーションとしてアンカータグ`)
@@ -128,7 +161,7 @@ watch: {
 1. ナビゲーション`後`の取得: ナビゲーションを先に実行し、その後次に入ってくる`コンポーネントのライフサイクルフック内`でデータを取得します。`データ取得中にローディングを表示`します。このアプローチを取る時は次に来るコンポーネントが即座にナビゲーションされ、描画されます。そして、コンポーネントの `created フックの中`でデータを取得します。
 2. ナビゲーション`前`の取得: `ルートに入るガード内`でナビゲーション前にデータ取得をします。そして、`データ取得後にナビゲーションを実行`します。次に入ってくる`コンポーネント内の beforeRouteEnter ガード`でデータ取得を実行できます。データ取得が完了したら `next を呼ぶだけ`です。
 ```javascript
-# 1. の場合 + proertyが変更の監視のためのwatch をセット
+// 1. の場合 + proertyが変更の監視のためのwatch をセット
 created () {
     // view が作られた時にデータを取得し、
     // そのデータは既に監視されています
@@ -140,7 +173,7 @@ created () {
   },
 ```                                                                          
 ```javascript
-# 2. の場合 Enterの前はインスタンスが作られてないためコールバックにする. 更新はbeforeRouteUpdateを使う.
+// 2. の場合 Enterの前はインスタンスが作られてないためコールバックにする. 更新はbeforeRouteUpdateを使う.
 beforeRouteEnter (route, redirect, next) {
     getPost(route.params.id, (err, post) => {
       next(vm => vm.setData(err, post))
@@ -152,13 +185,13 @@ beforeRouteEnter (route, redirect, next) {
 2. `実際のページリロードがしているように history 要素のスクロールポジションを保持したい`
 - この機能は ブラウザが `history.pushState` をサポートしている場合のみ動作する。
 ```javascript
-#1. の例
+// 1. の例
 scrollBehavior (to, from, savedPosition) {
   return { x: 0, y: 0 }　
 }
 ```
 ```javascript
-#2. の例
+// 2. の例
 scrollBehavior (to, from, savedPosition) {
   if (savedPosition) {
     return savedPosition
@@ -170,13 +203,13 @@ scrollBehavior (to, from, savedPosition) {
 #### Slots フォールバックコンテンツ
 - コンテンツがない場合にだけ描画されるフォールバック (つまり、デフォルトの) コンテンツ
 ```html
-# child vue
+<!-- child vue-->
 <button type="submit">
     <slot>Submit</slot>
 </button>
 ```
 ```html
-# parent vue スロット指定しない-> デフォルトのslot適用 つまりSubmitを表示
+<!--parent vue スロット指定しない-> デフォルトのslot適用 つまりSubmitを表示-->
 <Button></Button>
 # parent vue スロット指定-> Saveを表示
 <Button>Save</Button>
@@ -200,13 +233,13 @@ scrollBehavior (to, from, savedPosition) {
 ```
 - childのslotにv-bindでデータをつける。これを`スロットプロパティ`という。以下の例の`slotProps`は任意の変数。
 ```html
-# child
+<!-- child-->
 <span>
   <slot v-bind:user="user">
     {{ user.lastName }}
   </slot>
 </span>
-# parent
+<!-- parent-->
 <current-user>
   <template v-slot:default="slotProps">
     {{ slotProps.user.firstName }}
