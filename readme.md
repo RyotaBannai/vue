@@ -303,3 +303,29 @@ scrollBehavior (to, from, savedPosition) {
 ```
 using the runtime-only build of Vue where the template compiler is not available. Either pre-compile the templates into render functions, or use the compiler-included build.
 ```
+
+### Watch プロパティ
+- テンプレート
+```javascript
+watch: {
+   target_propaty_name: function (value_after[, value_before]) {
+      // write down your own codes.
+ }
+}
+``` 
+- watch プロパティのオプション `deep` `immediate`
+- `deep`(Optional) : trueの場合、監視するプロパティがオブジェクトの場合`ネストされた値の変更も検知`
+- `immediate`(Optional) : `true`の場合、`初期読み込み時`にも呼び出す -> `prop`で`マウント時に変更を適用することができる`ので**親での値の変化にも対応**できるようになる(`computed`プロパティのような初期の読み込み時の処理)
+- オプションも使うときのテンプレート
+```javascript
+watch: {
+   target_propaty_name: {
+        handler: function (value_after[, value_before]) {
+            // write down your own codes.
+        },
+        [deep: boolean],
+        [immediate: boolean],
+    }
+}
+```
+- 
