@@ -344,4 +344,9 @@ new Vue({
    },
 })
 ```
-- この場合 watchのオプションに`deep: true`を追加する。
+- この場合 watchのオプションに`deep: true`を追加する
+- `v-for` の`key`に配列インデックスを使ってはいけない（頻繁に変更される可能性のあるデータを`key`にしてはいけない）
+```html
+<li v-for="(item, index) in items" :key="index"><\li>
+```
+- [`Vue.jsのライフサイクルダイアグラム`](https://www.e-loop.jp/knowledges/1/)
