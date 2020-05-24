@@ -345,8 +345,82 @@ new Vue({
 })
 ```
 - この場合 watchのオプションに`deep: true`を追加する
-- `v-for` の`key`に配列インデックスを使ってはいけない（頻繁に変更される可能性のあるデータを`key`にしてはいけない）
+- `v-for` の`key`に配列インデックスを使ってはいけない（頻繁に変更される可能性のあるデータを`key`にしてはいけない）また、オブジェクトや配列のような`非プリミティブ値`を `v-for` のキーとして使わない。
 ```html
 <li v-for="(item, index) in items" :key="index"><\li>
 ```
-- [`Vue.jsのライフサイクルダイアグラム`](https://www.e-loop.jp/knowledges/1/)
+- Vue が `v-for` で描画された要素のリストを更新する際、標準では “その場でパッチを適用する” (`in-place patch`) 戦略を用いる。データのアイテムの順序が変更された場合、アイテムの順序に合わせて DOM 要素を移動する代わりに、 Vue は各要素にその場でパッチを適用して、`その特定のインデックスに何を描画するべきかを確実に反映`
+- [`Vue.jsのライフサイクルダイアグラム`](https://jp.vuejs.org/v2/guide/instance.html#%E3%83%A9%E3%82%A4%E3%83%95%E3%82%B5%E3%82%A4%E3%82%AF%E3%83%AB%E3%83%80%E3%82%A4%E3%82%A2%E3%82%B0%E3%83%A9%E3%83%A0)
+- 変更メソッド `push() pop() shift() unshift() splice() sort() reverse()` を監視対象の配列に適用すると画面も更新される。
+***
+###　注意点 
+- JavaScript の制限のため、Vue は、配列やオブジェクトでは検出することができない変更のタイプがあり, [`reactivity`セクション](https://jp.vuejs.org/v2/guide/reactivity.html#%E5%A4%89%E6%9B%B4%E6%A4%9C%E5%87%BA%E3%81%AE%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85)で議論されている。
+#### オブジェクトに関して 
+- Vueはオブジェクトの追加または消去を検出できない。そのためvmが作成された後にオブジェクトにプロパティを追加してもリアクティブにはならない。リアクティブにしたい場合は次のいずれかの方法を使う。
+```javascript
+Vue.set(object, propertyName, value)
+this.$set(this.someObject, 'b', 2)
+
+```
+- `vm.$set` インスタンスメソッドを使用することもできる。これはグローバルの `Vue.set のエイリアス`
+- 上の方法はプロパティを１つ追加する方法。複数追加したい場合は次の方法を使う。
+```javascript
+// `Object.assign(this.someObject, { a: 1, b: 2 })` の代わり
+this.someObject = Object.assign({}, this.someObject, { a: 1, b: 2 })
+```
+- `元のオブジェクト`と`ミックスインオブジェクト`の`両方のプロパティを持つ新たなオブジェクト`を作成
+#### 配列に関して
+- Vue は、配列における次の変更は検知できない:
+1. `インデックスと一緒にアイテムを直接セットする場合`、例えば `vm.items[indexOfItem] = newValue`
+2. `配列の長さを変更する場合`、例えば `vm.items.length = newLength`
+- これに対応するためにオブジェクト同様`Vue.set`または`Array.prototype.splice`を使う
+```javascript
+// 1.
+Vue.set(vm.items, indexOfItem, newValue) // もちろんこれもok vm.$set(vm.items, indexOfItem, newValue)
+vm.items.splice(indexOfItem, 1, newValue)
+// 2. 
+vm.items.splice(newLength)
+```
+#### リアクティブプロパティの宣言
+- リアクティブなプロパティを動的に追加することはできないため、インスタンスの初期化時に前もって`全てのルートレベルのリアクティブな data プロパティを予め宣言する必要がある`
+1. 依存性追跡システムにおける一連のエッジケースを排除するため
+2. 後から見直したり別の開発者が読んだりしたときにコンポーネントのコードを簡単に理解できるため
+#### 非同期更新キュー
+- `vm.someData = 'new value'` をセットした時、`そのコンポーネントはすぐには再描画しない`。 次の “tick” でキューがフラッシュされる時に更新。データの変更後に Vue.js の DOM 更新の完了を待つには、データが変更された直後に `Vue.nextTick(callback)` を使用。そのコールバックは DOM が更新された`後に`呼ばれる。
+```javascript
+var vm = new Vue({
+  el: '#example',
+  data: {
+    message: '123'
+  }
+})
+vm.message = 'new message' // データを変更
+vm.$el.textContent === 'new message' // false
+Vue.nextTick(function () {
+  vm.$el.textContent === 'new message' // true
+})
+```
+- または`vm.$nextTick()` インスタンスメソッドを使う。
+```javascript
+methods: {
+    updateMessage: function () {
+      this.message = 'updated'
+      console.log(this.$el.textContent) // => 'not updated'
+      this.$nextTick(function () {
+        console.log(this.$el.textContent) // => 'updated'
+      })
+    }
+  }
+```
+- `$nextTick()` は `Promise` を返却するため、新しい `ES2017 async/awai`t 構文を用いて、同じことができる。
+```javascript
+methods: {
+  updateMessage: async function () {
+    this.message = 'updated'
+    console.log(this.$el.textContent) // => 'not updated'
+    await this.$nextTick()
+    console.log(this.$el.textContent) // => 'updated'
+  }
+}
+```
+***

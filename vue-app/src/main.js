@@ -31,7 +31,8 @@ const router = new Router({
         // post/ とマッチ
         path: '/post', component: Nologic },
       {
-        path: '/post/:id', name:'post', component: Post,
+        path: '/post/:id', name:'o' +
+              '', component: Post,
         children:[
             {   // post/:id/comment とマッチ
                 // 注意：Comment は **Post の** <router-view> 内部で描画される

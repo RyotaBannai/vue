@@ -25,7 +25,7 @@
                 items: [
                     {'message': 'hi'},
                     {'message': 'bonsoir'},
-                    {'message': 'hi hao'},
+                    {'message': 'ni hao'},
                     ],
                 name: 'ryota',
             }
