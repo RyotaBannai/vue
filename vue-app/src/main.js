@@ -7,7 +7,6 @@ const About = () => import('./views/About');
 const Home = () => import('./views/Home');
 const Playground = () => import('./views/Playground');
 const PG2 = () => import('./views/PG2');
-const PG3 = () => import('./views/PG3');
 const Post = () => import('./views/Post');
 const SubContent = () => import('./views/SubContent');
 const Comment = () => import('./views/Comment');
@@ -28,7 +27,7 @@ const router = new Router({
       { path: '/about', name:'about', component: About },
       { path: '/playground', name:'playground', component: Playground },
       { path: '/pg2', name:'pg2', component: PG2 },
-      { path: '/pg3', name:'pg3', component: PG3 },
+      { path: '/pg3', name:'pg3', component: () => import('./views/PG3') }, // Promise を返す関数
       {
         // post/ とマッチ
         path: '/post', component: Nologic },

@@ -98,7 +98,7 @@ export default new Router({
   ]
 })
 ```
-###　プログラムによるナビゲーション
+### プログラムによるナビゲーション
 - 注意: path が渡された場合は params は無視されます（query は上の例の通り無視されません）。代わりに name でルート名を渡すか、path にすべてのパラメータを含める必要がある。
 ```javascript
 // 文字列パス
@@ -306,6 +306,7 @@ scrollBehavior (to, from, savedPosition) {
 ```
 #### Dynamic Import: 初期ロードの負荷を抑えるためにWebpackのCode Splittingを用いた機能
 - 無名関数にするだけ？でchunkでロードされる。 `developer tool > network > js` でsize が(prefetch cache)でロードされる. [ref](https://vuedose.tips/tips/dynamic-imports-in-vue-js-for-better-performance/)
+- [こうしてロードされたコンポネントを`非同期コンポーネント`という]。(https://jp.vuejs.org/v2/guide/components-dynamic-async.html#%E9%9D%9E%E5%90%8C%E6%9C%9F%E3%82%B3%E3%83%B3%E3%83%9D%E3%83%BC%E3%83%8D%E3%83%B3%E3%83%88)
 #### Error
 - domを作っただけで、export default してない時のエラー。
 ```
@@ -361,7 +362,7 @@ new Vue({
 - [`Vue.jsのライフサイクルダイアグラム`](https://jp.vuejs.org/v2/guide/instance.html#%E3%83%A9%E3%82%A4%E3%83%95%E3%82%B5%E3%82%A4%E3%82%AF%E3%83%AB%E3%83%80%E3%82%A4%E3%82%A2%E3%82%B0%E3%83%A9%E3%83%A0)
 - 変更メソッド `push() pop() shift() unshift() splice() sort() reverse()` を監視対象の配列に適用すると画面も更新される。
 ***
-###　注意点 
+### 注意点 
 - JavaScript の制限のため、Vue は、配列やオブジェクトでは検出することができない変更のタイプがあり, [`reactivity`セクション](https://jp.vuejs.org/v2/guide/reactivity.html#%E5%A4%89%E6%9B%B4%E6%A4%9C%E5%87%BA%E3%81%AE%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A0%85)で議論されている。
 #### オブジェクトに関して 
 - Vueはオブジェクトの追加または消去を検出できない。そのためvmが作成された後にオブジェクトにプロパティを追加してもリアクティブにはならない。リアクティブにしたい場合は次のいずれかの方法を使う。
@@ -626,7 +627,14 @@ Vue.component('custom-input', {
 ```html
 <custom-input v-model="searchText"></custom-input>
 ```
-- [`v-bind:is=""` を使うとタブ切替の実装が一瞬で完成できる。](https://codesandbox.io/s/github/vuejs/vuejs.org/tree/master/src/v2/examples/vue-20-dynamic-components?file=/index.html:945-964)
+- [`v-bind:is=""` を使うとタブインタフェースの実装が一瞬で完成できる。](https://codesandbox.io/s/github/vuejs/vuejs.org/tree/master/src/v2/examples/vue-20-dynamic-components?file=/index.html:945-964) [official doc](https://jp.vuejs.org/v2/guide/components-dynamic-async.html)
+- この場合コンポネントのインスタンスがキャッシュされるのが好ましい。動的コンポーネントを` <keep-alive> `要素でラップする
+```html
+<!-- インアクティブなコンポーネントはキャッシュされます! -->
+<keep-alive>
+  <component v-bind:is="currentTabComponent"></component>
+</keep-alive>
+```
 - JavaScript のオブジェクトと配列は、参照渡しされることに注意。参照として渡されるため、子コンポーネント内で配列やオブジェクトを変更すると、 親の状態へと影響する。
 - [既存の属性への置換とマージ](https://jp.vuejs.org/v2/guide/components-props.html#%E6%97%A2%E5%AD%98%E3%81%AE%E5%B1%9E%E6%80%A7%E3%81%B8%E3%81%AE%E7%BD%AE%E6%8F%9B%E3%81%A8%E3%83%9E%E3%83%BC%E3%82%B8): class および style 属性は少しスマートに作られていて、両方の値がマージされる。
 ### Event
