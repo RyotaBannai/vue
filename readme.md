@@ -35,7 +35,7 @@
 - データが変わるのに応じて`非同期`や`コストの高い処理を実行したいとき`に最も便利
 - `非同期処理`( API のアクセス)の実行や、処理をどのくらいの頻度で実行するかを制御したり、`最終的な answer が取得できるまでは中間の状態にしておく`、といったことが可能。`これらはいずれも算出プロパティでは実現できない`。`処理を実行してもデータは返さない場合`も`watch`にかく。
 ### methods 
-- 算出プロパティが使えない状況ではメソッドを使う。例えば、入れ子になった v-for のループの中): set はmethods
+- 算出プロパティが使えない状況ではメソッドを使う。例えば、入れ子になった v-for のループの中): even はmethods
 ```html
 <ul v-for="set in sets">
   <li v-for="n in even(set)">{{ n }}</li>
@@ -513,3 +513,77 @@ new Vue({
 })
 ```
 - [delete element from list and object](https://stackoverflow.com/questions/35459010/vuejs-remove-element-from-lists)
+### Event Handling
+- インラインステートメントハンドラでオリジナルの DOM イベントを参照したい: pass $event 
+```javascript
+<button v-on:click="warn('Form cannot be submitted yet.', $event)">
+  Submit
+</button>
+```
+- イベント修飾子(`event modifiers`): `.prevent .once .self`など
+- .self: `event.target` が要素自身のときだけ、ハンドラが呼び出される。子要素のときは呼び出されない
+#### [bubble and capture] (https://javascript.info/bubbling-and-capturing)
+- [capturing phase and bubbling phase] (https://javascript.info/bubbling-and-capturing)
+```html
+<form class="outer"
+     v-on:click.capture="doThis($event, 'Capture-outer')"
+     v-on:click="doThis($event, 'Bubble-outer')">
+  OUTER
+  <div class="middle"
+       v-on:click.capture="doThis($event, 'Capture-middle')"
+       v-on:click="doThis($event, 'Bubble-middle')">
+    MIDDLE
+      <p class="inner"
+           v-on:click.capture="doThis($event, 'Capture-inner')"
+           v-on:click="doThis($event, 'Bubble-inner')">
+        INNER
+      </p>
+  </div>
+</form>
+<style>
+body * {
+  margin: 10px;
+  border: 1px solid blue;
+}
+</style>
+```
+```javascript
+new Vue({
+  el: '.outer',
+  data: {
+  },
+  methods: {
+    doThis: function(e, msg) {
+      debugger;
+      var target = e.target.classList[0];
+      var currentTarget = e.currentTarget.classList[0];
+      alert(msg + '\n' + "Clicked " + target + '\n' + "Triggered " + currentTarget)
+    }
+  }
+})
+```
+- https://jsfiddle.net/1b02crhw/6/
+- `bubble`: When an event happens on an element, `it first runs the handlers on it`, then on its parent, `then all the way up on other ancestors`.
+- `<p>`のイベントは　`p　>　div　>　form`の順にハンドリングされる。
+- `capture`: 内部要素を対象とするイベントは、その要素によって処理される前に処理される。
+- `<p>`のイベントは `form > div > p` の順位ハンドリングされる。
+- `addEventLister`: If it’s true, then the handler is set on the `capturing phase`.
+```javascript
+for(let elem of document.querySelectorAll('*')) {
+    elem.addEventListener("click", e => alert(`Capturing: ${elem.tagName}`), true);
+    elem.addEventListener("click", e => alert(`Bubbling: ${elem.tagName}`));
+}
+```
+
+- `The most deeply nested element`(`p`) that caused the event is called `a target element`, accessible as `event.target`. Note the differences from `this` (=`event.currentTarget`: the “`current`” element, the one that has `a currently running handler on it`.)
+```javascript
+form.onclick = function(event) { // 'this' is always 'form' because the handler runs on it.
+  event.target.style.backgroundColor = 'yellow';
+  setTimeout(() => {
+    alert("target = " + event.target.tagName + ", this=" + this.tagName); // 'event.target' is the actual element inside the form that was clicked.
+    event.target.style.backgroundColor = ''
+  }, 0);
+};
+```
+- `event.stopPropagation()` `stops the move upwards`, `but on the current element all other handlers will run`.
+- passive: marking a touch or wheel listener as passive, the developer is promising `the handler won't call preventDefault to disable scrolling`. This frees the browser up to `respond to scrolling immediately without waiting for JavaScript`, thus ensuring a reliably smooth scrolling experience for the user. [ref](https://stackoverflow.com/questions/37721782/what-are-passive-event-listeners)
