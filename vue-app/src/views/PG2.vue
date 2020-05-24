@@ -42,6 +42,11 @@
                 message: '',
             }
         },
+        mounted: function() {
+            console.log(this.$attrs);
+            console.log(this.$el);
+            console.log(this.$ref);
+        },
         filters: {
             addYourName: function(value, name) {
                 return value +', '+ name

@@ -627,3 +627,34 @@ Vue.component('custom-input', {
 <custom-input v-model="searchText"></custom-input>
 ```
 - [`v-bind:is=""` を使うとタブ切替の実装が一瞬で完成できる。](https://codesandbox.io/s/github/vuejs/vuejs.org/tree/master/src/v2/examples/vue-20-dynamic-components?file=/index.html:945-964)
+- JavaScript のオブジェクトと配列は、参照渡しされることに注意。参照として渡されるため、子コンポーネント内で配列やオブジェクトを変更すると、 親の状態へと影響する。
+- [既存の属性への置換とマージ](https://jp.vuejs.org/v2/guide/components-props.html#%E6%97%A2%E5%AD%98%E3%81%AE%E5%B1%9E%E6%80%A7%E3%81%B8%E3%81%AE%E7%BD%AE%E6%8F%9B%E3%81%A8%E3%83%9E%E3%83%BC%E3%82%B8): class および style 属性は少しスマートに作られていて、両方の値がマージされる。
+### Event
+- `コンポーネントやプロパティとは違い`、`イベント名の大文字と小文字は自動的に変換されません`。その代わり発火されるイベント名とイベントリスナ名は全く同じにする必要があります。例えばキャメルケース(`camelCase`)のイベント名でイベントを発火した場合:
+```javascript
+// fire an event
+this.$emit('myEvent')
+// listen the event
+<my-component v-on:myEvent="doSomething"></my-component>
+```
+- さらに DOM テンプレート内の v-on イベントリスナは自動的に小文字に変換されます (`HTML が大文字と小文字を判別しないため`)。このため `v-on:myEvent` は `v-on:myevent` になり myEvent にリスナが反応することが`できなく`なります。こういった理由から `ケバブケース(kebab-case)`を使う。
+- デフォルトではコンポーネントにある `v-model` は `value をプロパティとして、input をイベントして使う`が、チェックボックスやラジオボタンなどのインプットタイプは value 属性を別の目的で使う事があり、model オプションを使うことで衝突してしまう。解決方法はPG3.vueを参照。
+### 双方向バインディング
+- 子プロパティから親プロパティの値を変更する。
+```html
+<text-document
+  v-bind:title="doc.title"
+  v-on:update:title="doc.title = $event"
+></text-document>
+
+this.$emit('update:title', newTitle)
+```
+- .syncを使うと楽. `v-on:update.\[property name\] => v-on:\[property name\].sync`
+```html
+<text-document v-bind:title.sync="doc.title"></text-document>
+```
+- .sync 修飾子を v-bind に付けることでオブジェクトを使って複数のプロパティを一度にセットする事ができる
+```html
+<text-document v-bind.sync="doc"></text-document>
+```
+- doc がオブジェクトとして、doc内のtitleプロパティにv-onアップデートリスナがつけられる。
