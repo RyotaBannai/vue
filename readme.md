@@ -1,4 +1,5 @@
 ## Vue
+- [vue cheat sheet](https://flaviocopes.com/vue-cheat-sheet/)
 - `ディレクティブ`: v-if, v-bind, v-modelなどのhtml上にロジックを埋めるためのコード（`データバインディング`）もっとも基本的な形は、`Mustache` 構文(`二重中括弧`)を利用したテキスト展開
 - 動的引数: `in-DOM テンプレート` (HTML ファイルに直接書かれるテンプレート) を使う場合、ブラウザが強制的に属性名を小文字にするため、キー名を大文字にするのは避ける
 ```javascript
@@ -33,6 +34,13 @@
 #### watch ウォッチャ
 - データが変わるのに応じて`非同期`や`コストの高い処理を実行したいとき`に最も便利
 - `非同期処理`( API のアクセス)の実行や、処理をどのくらいの頻度で実行するかを制御したり、`最終的な answer が取得できるまでは中間の状態にしておく`、といったことが可能。`これらはいずれも算出プロパティでは実現できない`。`処理を実行してもデータは返さない場合`も`watch`にかく。
+### methods 
+- 算出プロパティが使えない状況ではメソッドを使う。例えば、入れ子になった v-for のループの中): set はmethods
+```html
+<ul v-for="set in sets">
+  <li v-for="n in even(set)">{{ n }}</li>
+</ul>
+```
 ### `vue router` 使い方
 - vue-router のデフォルトは hash モード - 完全な URL を hash を使ってシミュレートし、 URL が変更された時にページのリロードが起きません。
 - `<router-view/>`は対象componentsの描画する役割があるため、`root component`(`App.vue`)に置いておく。コンポネントベース実装の`main content`のようなもの。再利用するもの（ `header` `fooder`）は、 `<router-view/>`の周りにおいておく。
@@ -424,3 +432,84 @@ methods: {
 }
 ```
 ***
+- templateのroot domでv-forは使えないためtemplateでwrapする
+```html
+<template>
+    <template>
+        <tr v-for="item in items">
+            <td v-for="(key, value) in items" v-bind:key="key">{{ value }}</td>
+        </tr>
+    </template>
+</template>
+```
+- v-if と v-for を同時に利用することは 推奨されない。それらが同じノードに存在するとき、 v-for は v-if よりも高い優先度を持つ。
+```html
+<li v-for="todo in todos" v-if="!todo.isComplete">
+  {{ todo }}
+</li>
+```
+- `DOM テンプレート解析の注意事項`:  `<ul>` 要素の中では `<li>` のみが有効などのDOMの制限による物で、無効なコンテンツとしてつまみ出され、最終的に描画された出力にエラーが発生することがある。`is` を使う。
+```html
+<div id="todo-list-example">
+  <form v-on:submit.prevent="addNewTodo">
+    <label for="new-todo">Add a todo</label>
+    <input
+      v-model="newTodoText"
+      id="new-todo"
+      placeholder="E.g. Feed the cat"
+    >
+    <button>Add</button>
+  </form>
+  <ul>
+    <li
+      is="todo-item"
+      v-for="(todo, index) in todos"
+      v-bind:key="todo.id"
+      v-bind:title="todo.title"
+      v-on:remove="todos.splice(index, 1)"
+    ></li>
+  </ul>
+</div>
+```
+```javascript
+Vue.component('todo-item', {
+  template: '\
+    <li>\
+      {{ title }}\
+      <button v-on:click="$emit(\'remove\')">Remove</button>\
+    </li>\
+  ',
+  props: ['title']
+})
+new Vue({
+  el: '#todo-list-example',
+  data: {
+    newTodoText: '',
+    todos: [
+      {
+        id: 1,
+        title: 'Do the dishes',
+      },
+      {
+        id: 2,
+        title: 'Take out the trash',
+      },
+      {
+        id: 3,
+        title: 'Mow the lawn'
+      }
+    ],
+    nextTodoId: 4
+  },
+  methods: {
+    addNewTodo: function () {
+      this.todos.push({
+        id: this.nextTodoId++,
+        title: this.newTodoText
+      })
+      this.newTodoText = ''
+    }
+  }
+})
+```
+- [delete element from list and object](https://stackoverflow.com/questions/35459010/vuejs-remove-element-from-lists)

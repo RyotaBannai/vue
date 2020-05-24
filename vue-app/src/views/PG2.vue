@@ -11,6 +11,13 @@
                 {{ item.message | addYourName(name) }}
             </li>
         </ul>
+        <hr>
+        <ul>
+            <template >
+                <li v-for="(key, value, index) in items">{{ key,index }}</li>
+                <li class="divider" role="presentation"></li>
+            </template>
+        </ul>
     </div>
 </template>
 
