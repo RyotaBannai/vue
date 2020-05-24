@@ -587,3 +587,43 @@ form.onclick = function(event) { // 'this' is always 'form' because the handler 
 ```
 - `event.stopPropagation()` `stops the move upwards`, `but on the current element all other handlers will run`.
 - passive: marking a touch or wheel listener as passive, the developer is promising `the handler won't call preventDefault to disable scrolling`. This frees the browser up to `respond to scrolling immediately without waiting for JavaScript`, thus ensuring a reliably smooth scrolling experience for the user. [ref](https://stackoverflow.com/questions/37721782/what-are-passive-event-listeners)
+- `v-model + Vue インスタンスの動的なプロパティ`
+```javascript
+<select v-model="selected">
+<!-- インラインオブジェクトリテラル -->
+  <option v-bind:value="{ number: 123 }">123</option>
+</select>
+```
+- `propsに動的にプロパティを渡すにはv-bind を使う`
+### コンポーネントで v-model を使う
+- 以下は等価
+```html
+<input v-model="searchText">
+<input
+  v-bind:value="searchText"
+  v-on:input="searchText = $event.target.value"
+>
+```
+- 2つ目の例をコンポーネントで使用する場合次のように実装:
+```html
+<custom-input
+  v-bind:value="searchText"
+  v-on:input="searchText = $event"
+></custom-input>
+```
+```javascript
+Vue.component('custom-input', {
+  props: ['value'],
+  template: `
+    <input
+      v-bind:value="value"
+      v-on:input="$emit('input', $event.target.value)"
+    >
+  `
+})
+```
+- v-modelならば
+```html
+<custom-input v-model="searchText"></custom-input>
+```
+- [`v-bind:is=""` を使うとタブ切替の実装が一瞬で完成できる。](https://codesandbox.io/s/github/vuejs/vuejs.org/tree/master/src/v2/examples/vue-20-dynamic-components?file=/index.html:945-964)

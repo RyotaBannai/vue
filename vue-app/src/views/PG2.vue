@@ -18,6 +18,10 @@
                 <li class="divider" role="presentation"></li>
             </template>
         </ul>
+        <span>Multiline message is:</span>
+        <p style="white-space: pre-line;">{{ message }}</p>
+        <br>
+        <textarea v-model.lazy="message" placeholder="add multiple lines"></textarea>
     </div>
 </template>
 
@@ -35,6 +39,7 @@
                     {'message': 'ni hao'},
                     ],
                 name: 'ryota',
+                message: '',
             }
         },
         filters: {
