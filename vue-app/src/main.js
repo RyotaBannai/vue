@@ -28,11 +28,13 @@ const router = new Router({
       { path: '/playground', name:'playground', component: Playground },
       { path: '/pg2', name:'pg2', component: PG2 },
       { path: '/pg3', name:'pg3', component: () => import('./views/PG3') }, // Promise を返す関数
+      { path: '/pg4', name:'pg4', component: () => import('./views/PG4') }, // Promise を返す関数
+      { path: '/pg5', name:'pg5', component: () => import('./views/PG5') }, // Promise を返す関数
       {
         // post/ とマッチ
         path: '/post', component: Nologic },
       {
-        path: '/post/:id', name:'o' +
+        path: '/post/:id', name:'post-id' +
               '', component: Post,
         children:[
             {   // post/:id/comment とマッチ

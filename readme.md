@@ -665,4 +665,103 @@ this.$emit('update:title', newTitle)
 ```html
 <text-document v-bind.sync="doc"></text-document>
 ```
+
+### 特別な問題に対処
 - doc がオブジェクトとして、doc内のtitleプロパティにv-onアップデートリスナがつけられる。
+- 親コンポーネントインスタンスへのアクセスは$parentを使えば容易だけど、使うことは非推奨。なぜならparent component が別のcomponentをwrapしてまったら$parentはその新しいcomponentになる。こういう場合は、代わりに`依存性の注入`を使う。2つの新しい`インスタンスオプション`、`provide` と `inject` を使用
+```vue
+// parent
+provide: function () {
+  return {
+    getMap: this.getMap
+  }
+}
+
+// child
+inject: ['getMap'] // インスタンスに追加したい特定のプロパティを受け取る
+```
+- `依存性の注入`は:
+1. 祖先のコンポーネントはどの子孫が自分が提供するプロパティを使っているのかを知る必要はない。
+2. 子孫のコンポーネントは注入されたプロパティがどこからきているのかを知る必要はない。
+- `依存性の注入には不都合な点`
+1. 依存性の注入によってアプリケーションのコンポーネントどうしが密結合になり、リファクタリングが難しくなる。
+2. 提供されるプロパティはリアクティブじゃない。（これは設計上の理由によるものです。）
+- `中央データストア`を作るために依存性の注入を使うことは、同じ目的のために$rootを使うことと同じくらいアプリケーションのスケールが難しくなる。
+- もしアプリケーションに特定のプロパティをシェアしたいのなら、もしくはもし先祖に提供したデータを更新したいのなら、`Vuex`のような本物の状態管理ソリューションを使う。
+***
+- プロパティとイベントが存在するにも関わらず、ときどき JavaScript で直接子コンポーネントにアクセスする必要があるかもしれない。このために `ref 属性`を使い、子コンポーネントに`リファレンス ID` を割り当てることができる。
+```vue
+// parent
+<template>
+<base-input ref="usernameInput"></base-input>
+</template>
+{
+methods: {
+        accessToChild: function(){
+            this.$refs.usernameInput.focus()
+        }
+    }
+}
+
+// child
+<input ref="input">
+methods: {
+    focus: function() {
+        this.$refs.input.focus() // parent 用に定義
+    }
+}
+```
+### 循環参照：（再起的なコンポーネント）コンポーネントは自身をテンプレートで再帰的に呼び出すことができる
+- 再起的な呼び出しは条件付きにする
+- `モジュールシステムに「コンポーネント A は最終的にコンポーネント B を必要としますが、B を最初に解決する必要はありません」ということを教える必要がある。`
+- `beforeCreate` ライフサイクルフックが B コンポーネントを登録するまで待つようにする
+- 親コンポネントに追加。
+```vue
+beforeCreate: function () {
+    this.$options.components.TreeFolderContents = require('./TreeFolderContents.vue').default;
+},
+// または
+components: {
+   'tree-folder-contents': () => import('./TreeFolderContents.vue')
+},
+```
+- [自分自身を呼び出して再帰を再現](https://qiita.com/y-miine/items/bf06e9465a2b1821bf2c)
+#### X-テンプレート
+- テンプレートを定義する別の方法は、`type 属性text/x-templateを用いたスクリプト要素の内部で定義する方法`
+- 普通に開発している分には使うことはない。
+```vue
+<script type="text/x-template" id="hello-world-template">
+  <p>Hello hello hello</p>
+</script>
+
+Vue.component('hello-world', {
+  template: '#hello-world-template'
+})
+```
+#### 強制更新
+- `$forceUpdate `を用いる(もしVue で強制更新をする必要な場面に遭遇する場合、99.99% のケースであなたは何かを間違えている)
+#### v-once を使用するチープスタティックコンポーネント
+- ルート要素に `v-once` ディレクティブを加えることによって`一度だけ評価され、そしてキャッシュされることを保証する`ことができる。
+```vue
+Vue.component('terms-of-service', {
+  template: `
+    <div v-once>
+      <h1>Terms of Service</h1>
+      ... a lot of static content ...
+    </div>
+  `
+})
+```
+### トランジション
+- 各クラスは、トランジションの名前が先頭に付きます。`<transition>` 要素に名前が**ない**場合は、デフォルトで `v-` が先頭に付く。例えば、`<transition name="my-transition">` の場合は、`v-enter` クラス**ではなく**、`my-transition-enter` となる。
+#### カスタムトランジションクラス
+-　次の属性で、カスタムトランジションクラスを指定できます:
+```text
+enter-class
+enter-active-class
+enter-to-class (2.1.8 以降のみ)
+leave-class
+leave-active-class
+leave-to-class 
+```
+  
