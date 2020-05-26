@@ -14,7 +14,7 @@
         <hr>
         <ul>
             <template >
-                <li v-for="(key, value, index) in items">{{ key,index }}</li>
+                <li v-for="item in items" v-bind:key="item.message">{{ item }}</li>
                 <li class="divider" role="presentation"></li>
             </template>
         </ul>
