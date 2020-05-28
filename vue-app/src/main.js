@@ -30,6 +30,7 @@ const router = new Router({
       { path: '/pg3', name:'pg3', component: () => import('./views/PG3') }, // Promise を返す関数
       { path: '/pg4', name:'pg4', component: () => import('./views/PG4') }, // Promise を返す関数
       { path: '/pg5', name:'pg5', component: () => import('./views/PG5') }, // Promise を返す関数
+      { path: '/pg6', name:'pg6', component: () => import('./views/PG6') }, // Promise を返す関数
       {
         // post/ とマッチ
         path: '/post', component: Nologic },
