@@ -805,8 +805,37 @@ methods:{
 }
 ```
 - [ref](https://stackoverflow.com/questions/43210508/vue-js-conditional-class-style-binding)
-### ミックスイン
+#### ミックスイン
 - `ミックスインオブジェクト`は任意のコンポーネントオプションを含むことができる。ミックスインをコンポーネントに混ぜると、ミックスインの全てのオプションはコンポーネント自身のオプションにマージされる。`データオブジェクト（data(): {return{...}}）`は、コンフリクトしたときはコンポネントのオプションが優先される。
 - 同じ名前の`フック関数`は`それら全てが呼び出されるよう配列にマージされる`。ミックスインのフックはコンポーネント自身のフック`前に`呼ばれます。
 - `オブジェクトの値を期待するオプション`は、例えば、methods、components、そして directives らは同じオブジェクトにマージされる。オブジェクトで`キーのコンフリクト`（methods なら関数名のコンフリクト）があるとき、データオブジェクトと同様、`コンポーネントオプションが優先`される。
-- 
+#### カスタムディレクティブ: テンプレートに記述できる`v-`から始まる属性のこと
+```vue
+directives: {
+  focus: {
+    // ディレクティブ定義
+    inserted: function (el) {
+      el.focus()
+    }
+  }
+}
+```
+- `フック関数`: 処理を実行するタイミングを細かく制御できる
+- `ディレクティブフック引数`：カスタムディレクティブで使いたいデータ。 `v-demo:foo.a.b="message"`こんな感じで渡して上げるとどんなデータも取ってこれる。
+#### 関数の省略
+- bind と updateが同じ動作になることが多くて、それ以外のホックは必要ないときはオブジェクトではなく無名関数を渡して省略するとこができる。
+```vue
+directives: {
+    'color-swatch': function (el, binding) {
+        el.style.backgroundColor = binding.value
+     }
+}
+```
+#### valueにオブジェクトリテラルを渡す
+```vue
+<div v-demo="{ color: 'white', text: 'hello!' }"></div>
+Vue.directive('demo', function (el, binding) {
+  console.log(binding.value.color) // => "white"
+  console.log(binding.value.text)  // => "hello!"
+})
+```
