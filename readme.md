@@ -753,7 +753,7 @@ Vue.component('terms-of-service', {
 })
 ```
 ### トランジション
-- 各クラスは、トランジションの名前が先頭に付きます。`<transition>` 要素に名前が**ない**場合は、デフォルトで `v-` が先頭に付く。例えば、`<transition name="my-transition">` の場合は、`v-enter` クラス**ではなく**、`my-transition-enter` となる。
+- cssで利用する各`クラス`は、トランジションの名前が先頭に付きます。`<transition>` 要素に名前が**ない**場合は、デフォルトで `v-` が先頭に付く。名前がある場合、例えば`<transition name="my-transition">` の場合は、`v-enter` クラス**ではなく**、`my-transition-enter` となる。
 #### カスタムトランジションクラス
 -　次の属性で、カスタムトランジションクラスを指定できます:
 ```text
@@ -764,4 +764,45 @@ leave-class
 leave-active-class
 leave-to-class 
 ```
-  
+### 要素間のトランジション：transition の中に複数このアイテムを追加する。
+- `同じタグ名`を持つ要素同士でトグルするとき、それらに`key 属性を指定する`ことで、個別の要素であることを Vue に伝えなければいけない。そうしないと、 Vue のコンパイラは効率化のために`要素の内容だけを置き換えようとする`。技術的には不要な場合でも、常に `<transition> `コンポーネント内の複数のアイテムを区別するように心がける。
+```vue
+<transition>
+  <button v-if="isEditing" key="save">
+    Save
+  </button>
+  <button v-else key="edit">
+    Edit
+  </button>
+</transition>
+// 
+<transition>
+  <button v-bind:key="isEditing">
+    {{ isEditing ? 'Save' : 'Edit' }}
+  </button>
+</transition>
+```
+#### トランジションモード
+- 同時に `entering` と `leaving` が行われることは必ずしも望ましくないこともある。このために Vue は代替となる トランジションモード を提供している。`in-out` `out-in` モードがある。
+#### 初期描画時のトランジション
+- ノードの初期描画時にトランジションを適用したい場合は、`appear 属性`を追加
+#### スタッガリングリストトランジション
+- data 属性を介して、JavaScript トランジションとやりとりを行うことで、`リスト内の遷移をずらす`ことが可能.
+#### 
+####  Conditional class style binding
+- Use the `object syntax` 
+```vue 
+v-bind:class="{'fa-checkbox-marked': content['cravings'],  'fa-checkbox-blank-outline': !content['cravings']}"
+```
+- when the object is gets more complicated, extract it inot a method
+```vue 
+v-bind:class="getClass()"
+methods:{
+    getClass(){
+        return {
+            'fa-checkbox-marked': this.content['cravings'],  
+            'fa-checkbox-blank-outline': !this.content['cravings']}
+    }
+}
+```
+- [ref](https://stackoverflow.com/questions/43210508/vue-js-conditional-class-style-binding)
