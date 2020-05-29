@@ -8,26 +8,33 @@ export default {
             isActive: true,
             isFalse: false,
             title: 'Render function',
+            text: 'my text'
         }
     },
     render: function(createElement){
         return createElement(
-            'h1',
+            'div',
             {
                 class: {
                     foo: this.isActive,
                     bar: this.isFalse
-                }
+                },
+                // スロットを組み込みたい場合
+                // scopedSlots: {
+                //     default: props => createElement('span', props.text)
+                // },
             },
             [
                 this.message,
                 createElement('h3', 'A headline'),
                 createElement(MyComponent, {
                     props: {
-                        someProp: 'foobar' // pass the props
+                        someProp: 'foobar', // pass the props
+
                     }
                 })
-            ])
+            ],
+        )
     }
 }
 </script>

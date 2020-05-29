@@ -843,3 +843,33 @@ Vue.directive('demo', function (el, binding) {
 - `createElement` は実際に何を返しているのか？実は `createNodeDescription` という名前の方がより正確で、なぜなら`createElement`は
 実際の DOM 要素ではなく、その子ノードの記述も含め、どのノードを描画するかを記述した情報を Vueに伝えている（describe）ため。この`ノード記述`は”`仮想ノード`”と呼ばれ、通常は `VNode` と略されます。”`仮想 DOM`” は`VNode のツリー全体`のこと、または`Vue コンポーネントのツリーで構築された全体`を指してを言う。
 - createElement内に`トップレベルのプロパティにclass, style`などを宣言することができる。（`v-bind:class` と同じ API）
+### 状態管理
+#### 単純な store パターン 
+- Store の状態を変える action はすべて store 自身の中にあることに注意。このように状態管理を中央集権的にするとよい。
+```vue
+var store = {
+  debug: true,
+  state: {
+    message: 'Hello!'
+  },
+  setMessageAction (newValue) {
+    if (this.debug) console.log('setMessageAction triggered with', newValue)
+    this.state.message = newValue
+  },
+  clearMessageAction () {
+    if (this.debug) console.log('clearMessageAction triggered')
+    this.state.message = ''
+  }
+}
+```
+- それぞれのインスタンスやコンポーネントに、プライベートな状態を持たせ管理することも可能
+```vue
+var vmA = new Vue({
+  data: {
+    privateState: {},
+    sharedState: store.state
+  }
+})
+```
+- `コンポーネント`が store が持つ状態を直接変えることは許さない。代わりに`コンポーネント`は `store に通知するイベントを送り出しアクションを実行する`。この規約を発展させていく先に、 `Flux アーキテクチャ`がある。この規約によって、`store に起こるすべての状態変化を記録する`ことができたり、`変更ログやスナップショット、履歴や時間を巻き戻す、といった高度なデバッギングヘルパーの実装など`の利点をももたらす。
+- 
