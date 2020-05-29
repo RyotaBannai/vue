@@ -839,3 +839,7 @@ Vue.directive('demo', function (el, binding) {
   console.log(binding.value.text)  // => "hello!"
 })
 ```
+### Render （描画）関数を使う
+- `createElement` は実際に何を返しているのか？実は `createNodeDescription` という名前の方がより正確で、なぜなら`createElement`は
+実際の DOM 要素ではなく、その子ノードの記述も含め、どのノードを描画するかを記述した情報を Vueに伝えている（describe）ため。この`ノード記述`は”`仮想ノード`”と呼ばれ、通常は `VNode` と略されます。”`仮想 DOM`” は`VNode のツリー全体`のこと、または`Vue コンポーネントのツリーで構築された全体`を指してを言う。
+- createElement内に`トップレベルのプロパティにclass, style`などを宣言することができる。（`v-bind:class` と同じ API）

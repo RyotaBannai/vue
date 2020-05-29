@@ -10,6 +10,7 @@
             <router-link to="/pg4">Playground4</router-link> |
             <router-link to="/pg5">Playground5</router-link> |
             <router-link to="/pg6">Playground6</router-link> |
+            <router-link to="/pg7">Playground7</router-link> |
             <router-link :to="{name:'post-id', params: {id: 1}}">Post</router-link>
         </div>
     </header>
