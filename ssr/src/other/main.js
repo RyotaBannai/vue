@@ -4,18 +4,14 @@ const fs=require('fs')
 const renderer=require('vue-server-renderer').createRenderer({
     template: fs.readFileSync('templates/index.template.html', 'utf-8')
 })
+const createApp = require('./app') // 元々は毎回MVインスタンスを作成するだけのファイル
 
 server.get('*', (req, res)=>{
-    const app = new Vue({
-        data: {
-            url: req.url
-        },
-        template: `<div> The visisted URL is: {{ url }}</div>`
-    })
     const context = {
         title: 'hello',
-        meta: `<meta charset="UTF-8">`
+        meta: `<meta charset="UTF-8">`,
     }
+    const app = createApp(context)
 
     renderer.renderToString(app, context, (err, html)=>{
         if(err){
