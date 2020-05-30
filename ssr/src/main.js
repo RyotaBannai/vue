@@ -1,6 +1,9 @@
 const Vue=require('vue')
 const server=require('express')()
-const renderer=require('vue-server-renderer').createRenderer()
+const fs=require('fs')
+const renderer=require('vue-server-renderer').createRenderer({
+    template: fs.readFileSync('templates/index.template.html', 'utf-8')
+})
 
 server.get('*', (req, res)=>{
     const app = new Vue({
@@ -9,19 +12,20 @@ server.get('*', (req, res)=>{
         },
         template: `<div> The visisted URL is: {{ url }}</div>`
     })
+    const context = {
+        title: 'hello',
+        meta: `<meta charset="UTF-8">`
+    }
 
-    renderer.renderToString(app, (err, html)=>{
+    renderer.renderToString(app, context, (err, html)=>{
         if(err){
             res.status(500).end('Inernal Server Error')
             return
         }
-        res.end(`
-        <!DOCTYPE html>
-        <html lang="en">
-            <head><title>Hello</title></head>
-            <body>${html}</body>
-        </html>
-        `)
+        else{
+            res.end(html)
+        }
+
     })
 })
 
