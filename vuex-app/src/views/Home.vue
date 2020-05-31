@@ -1,18 +1,19 @@
 <template>
   <div class="home">
-    <CounterMap/>
+    <Todos/>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
 // import Counter from '@/components/Counter.vue'
-import CounterMap from '@/components/CounterMap.vue'
+// import CounterMap from '@/components/CounterMap.vue'
+import Todos from '@/components/Todos.vue'
 
 export default {
   name: 'Home',
   components: {
-    CounterMap
+    Todos
   }
 }
 </script>
@@ -24,11 +25,14 @@ export default {
   ul {
     list-style-type: none;
     padding: 0;
+
   }
   li {
-    display: inline-block;
-    margin: 0 10px;
+    border-bottom: 1px solid #aaa;
   }
+  /*  display: inline-block;*/
+  /*  margin: 0 10px;*/
+  /*}*/
   a {
     color: #42b983;
   }

@@ -1,7 +1,7 @@
 <template>
     <div class="hello">
         <h1>{{ msg }}</h1>
-        <div>{{ count }}</div>
+        <div>{{ countAlias }}</div>
         <button v-on:click="increment">Increment</button>
         <button v-on:click="getCurrentValue">Get current value</button>
     </div>
@@ -19,9 +19,11 @@
             }
         },
         computed: {
-            ...mapState("count", {
-                count: state => state.count
-            }),
+            ...mapState("count", // ['count'], // マップされた算出プロパティの名前がステートサブツリーの名前と同じ場合
+                {
+                count: state => state.count,
+                countAlias: 'count', // 文字列を渡すことは、`state => state.count` と同じ
+                }),
         },
         methods: {
             // increment: function(){

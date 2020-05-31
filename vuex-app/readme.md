@@ -50,3 +50,8 @@ computed: {
 ### Module化したときの注意点
 - store に記述するstateの値の参照方法に気を付ける。Vue.Storeにそのまま記述するなら、this.state.[Your value]でthisでアクセスしなくてはいけないが、module化したときは単にstate.[Your value]として`this`無しでアクセスしないと、値更新後が`undefined`になる。
 - getter,  action, mutation の参照の仕方が変わる. module化するまえは、`this.$store.commit("increment");`　こんな感じで、モジュール[YourModule]にして分割したら、呼び出し方は、`this.$store.commit("YourModule/increment");`になる。注意したいのは、stateの呼び出し方はこれと異なること。stateはドットで連結してアクセスする。`this.$store.state.count.count` この違いは単に、`stateはオブジェクトのプロパティ`で、`getter, action, mutationは関数`だからである。getter は `this.$store.getters["moduleName/getterName"]`
+- Vuex は `単一ステートツリー` (`single state tree`) を使います。つまり、この単一なオブジェクトはアプリケーションレベルの状態が全て含まれており、"信頼できる唯一の情報源 (`single source of truth`)" として機能します。(通常、アプリケーションごとに1つしかストアは持たない) 次のことをを容易になる。
+    1. 単一ステートツリーは状態の特定の部分を見つけること
+    2. デバッグのために現在のアプリケーションの状態のスナップショットを撮ること
+- `mapState` はオブジェクトを返すため、`オブジェクトスプレッド演算子`でオブジェクトの内部をマージする。
+
