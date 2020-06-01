@@ -23,6 +23,9 @@
             ...mapState("todos", {
                     items: state => state.items,
                 }),
+            ...mapGetters("todos", [
+                'getAll'
+            ]),
         },
         watch: {
             items: function() {
@@ -30,9 +33,6 @@
             }
         },
         methods: {
-            ...mapGetters("todos", [
-                'getAll'
-            ]),
             ...mapActions("todos", [
                 'callAdd',
             ]),

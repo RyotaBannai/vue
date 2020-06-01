@@ -54,4 +54,36 @@ computed: {
     1. 単一ステートツリーは状態の特定の部分を見つけること
     2. デバッグのために現在のアプリケーションの状態のスナップショットを撮ること
 - `mapState` はオブジェクトを返すため、`オブジェクトスプレッド演算子`でオブジェクトの内部をマージする。
-
+### Actions vs Mutations
+- そもそも`Mutation`は`同期`処理でなければならなず、`Action`は`非同期`処理も可能という違いがあります。これは、`Mutationで複数の状態の変更が非同期に行われた場合に挙動が予測不能になるのを防ぐ`という意図がある。(Action で非同期にMutationを呼んだら（`commit`したら）どうなのか=> Actionを呼び出すための`dispatchメソッドはPromiseを返すため、処理の順序を制御することが可能`=>MutationにもPromiseつけて非同期できるから、勘所は`非同期か同期で使い分けるため`)
+- ミューテーションハンドラ：イベントハンドラのようなもので、mutationsのプロパティとして宣言。（commitで呼び出すときにはハンドラ名をタイプとして渡すことで呼びだす）
+- typeを指定することもできる
+```vue
+store.commit({
+  type: 'increment',
+  amount: 10
+})
+mutations: {
+  increment (state, payload) {
+    state.count += payload.amount
+  }
+}
+```
+### getters
+- `プロパティとしてアクセスされるゲッター`は Vue のリアクティブシステムの一部としてキャッシュされる
+- `メソッドスタイルアクセス` (キャッシュされない): 関数を返り値にすることで、ゲッターに引数を渡すこともできます。これは特にストアの中の配列を検索する時に役立ちます
+```vue
+getters: {
+  // ...
+  getTodoById: (state) => (id) => {
+    return state.todos.find(todo => todo.id === id)
+  }
+}
+store.getters.getTodoById(2) // -> { id: 2, text: '...', done: false }
+```
+- `mapGetters` ヘルパーはストアのゲッターをローカルの算出プロパティ
+- state のフィールドを変更追加は極力避ける。=>初めに全て宣言しておく。
+- どうしても必要な場合は`Vue.set(obj, 'newProp', 123)`　とするか、object spread syntax を使って`state.obj = { ...state.obj, newProp: 123 }`とする。
+- ミューテーション・タイプを定数: 
+    1. コードに対してリントツールのようなツールを利用できる
+    2. 単一ファイルに全ての定数を設定することによって、共同で作業する人に、`アプリケーション全体で何のミューテーションが可能であるか`を一目見ただけで理解できるようにする

@@ -1,3 +1,5 @@
+import { INCREMENT } from '../mutation-types'
+
 const state = {
     count: 0
 };
@@ -6,7 +8,7 @@ const count = {
     namespaced: true,
     state,
     mutations: {
-        increment (state) {
+        [INCREMENT] (state) {
             state.count++
         }
     },
@@ -17,7 +19,7 @@ const count = {
         //     }
         // }
         increment (context) {
-            context.commit('increment')
+            context.commit(INCREMENT)
         }
     },
     getters: {
