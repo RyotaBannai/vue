@@ -87,3 +87,33 @@ store.getters.getTodoById(2) // -> { id: 2, text: '...', done: false }
 - ミューテーション・タイプを定数: 
     1. コードに対してリントツールのようなツールを利用できる
     2. 単一ファイルに全ての定数を設定することによって、共同で作業する人に、`アプリケーション全体で何のミューテーションが可能であるか`を一目見ただけで理解できるようにする
+- `mapMutations` は mutation自体を `this.$store.commit()` にマッピングするため、関数のように呼び出すだけで良い。
+- アクションハンドラはストアインスタンスのメソッドやプロパティのセットと同じものを呼び出せるコンテキストオブジェクトを受け取る（`context`）
+- アクションは非同期：非同期でも実行の順序をコントロールしたい => action は `Promise`を返却する。つまり以下のようにコントロールする
+```vue
+actions: {
+  actionA ({ commit }) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        commit('someMutation')
+        resolve()
+      }, 1000)
+    })
+  }
+}
+store.dispatch('actionA').then(() => {
+  // ...
+})
+```
+- async/ await を使用する
+```vue 
+actions: {
+  async actionA ({ commit }) {
+    commit('gotData', await getData()) // commit 前に getData() でデータを取得して、それをpayloadに渡す
+  },
+  async actionB ({ dispatch, commit }) {
+    await dispatch('actionA') // `actionA` が完了するのを待機する
+    commit('gotOtherData', await getOtherData())
+  }
+}
+```
