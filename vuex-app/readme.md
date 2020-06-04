@@ -227,6 +227,46 @@ actions: {
   }
 }
 ```
+
+- `厳格モード`: Vuex の状態がミューテーションハンドラの外部で変更されたら、エラーを投げる. `本番環境で厳格モードを有効にしてデプロイしてはいけない`！ 厳格モードでは不適切なミューテーションを検出するためにステートツリーに対して深い監視を実行する。`パフォーマンスコストを回避するために本番環境では無効`にする。
+```vue
+const store = new Vuex.Store({
+  // ...
+  strict: true
+ // strict: process.env.NODE_ENV !== 'production'
+})
+```
+- v-modelはstateを直接変更する操作になるため、strickモードではエラーになる。これの回避策としては、v-modelを使わずに、valueを単にbindしてinputイベントでaction(/mutation)を呼び出してstateを変更すると良い。
+```vue
+// x
+<input v-model="obj.message">
+// o↓
+<input :value="message" @input="updateMessage">
+methods: {
+  updateMessage (e) {
+    this.$store.commit('updateMessage', e.target.value)
+  }
+}
+mutations: {
+  updateMessage (state, message) {
+    state.obj.message = message
+  }
+}
+```
+- Admittedly the above example is a bit more verbose. You can use `Two-way Computed Property`(双方向算出プロパティ)
+```vue
+<input v-model="message">
+computed: {
+  message: {
+    get () {
+      return this.$store.state.obj.message
+    },
+    set (value) {
+      this.$store.commit('updateMessage', value)
+    }
+  }
+}
+```
 ### ホットリローディング
 - vuex はデフォルトでミューテーション、モジュールのホットリロードされない。（アクション、ゲッターはホットリロードされる）つまりこれらを変更したら再起動しないと変更が反映されない（？）ミューテーションとモジュールのホットリローディングのために、`store.hotUpdate()` API メソッドを利用する必要がある。コード更新後、新しいインスタンスを自動的に作成して、既存のmutaitons とmodulesに反映させる、ということをする。
 - [`動的モジュールホットリローディング`](https://vuex.vuejs.org/ja/guide/hot-reload.html#%E5%8B%95%E7%9A%84%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%83%9B%E3%83%83%E3%83%88%E3%83%AA%E3%83%AD%E3%83%BC%E3%83%87%E3%82%A3%E3%83%B3%E3%82%B0)というものがあり、もしstoreで使用するのが全てmoduleならこちらを使った方が完結にかける。
