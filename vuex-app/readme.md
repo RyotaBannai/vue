@@ -45,15 +45,125 @@ computed: {
       clearResult_A: "clearResult"
     }),
 ```
+- 名前空間内でglobalなactionを登録したい場合は、アクションのrootプロパティ をtrueにして、そのアクション内容をhandlerプロパティ にかく。
+```vue
+modules: {
+    foo: {
+      namespaced: true,
+       actions: {
+        someAction: {
+          root: true,
+          handler (namespacedContext, payload) { ... } // -> 'someAction' // here
+        }
+      }
+    }
+  }
+```
+- moduleはネストすることができるため次のようにすることができる。namespaced がない場合は、`名前空間は親モジュールから継承` 次のコードの`myPage`を参考。
+```vue
+const store = new Vuex.Store({
+  modules: {
+    account: {
+      namespaced: true,
+      // モジュールのアセット
+      state: () => ({ ... }), // モジュールステートはすでにネストされており、名前空間のオプションによって影響を受けません
+      getters: {
+        isAdmin () { ... } // -> getters['account/isAdmin']
+      },
+      // ネストされたモジュール
+      modules: {
+        // 親モジュールから名前空間を継承する without namespaced: true
+        myPage: {
+          state: () => ({ ... }),
+          getters: {
+            rofile () { ... } // -> getters['account/profile'] // watch out!
+          }
+        },
+        // さらに名前空間をネストする
+        posts: {
+          namespaced: true, // namespaced is true so namespaced becomes nested as well.
+          state: () => ({ ... }),
+          getters: {
+            popular () { ... } // -> getters['account/posts/popular']
+          }
+        }
+      }
+    }
+  }
+})
+```
 - [参考](https://qiita.com/nmt1119/items/27ed23e433ec54a9c950)
 - [Uncle JS](https://uncle-javascript.com/vuex-modules)
+- モジュール(module)のmutation やgetter の中では、渡される第1引数はモジュールの`ローカルステート`。同様に、モジュールの`action の中では` context.state はローカルステートにアクセスでき、`ルートのステート`は `context.rootState` で、getterでは`第３引数で`アクセスできる。
+```vue 
+const moduleA = {
+    actions: {
+    incrementIfOddOnRootSum ({ state, commit, rootState }) { // here
+        if ((state.count + rootState.count) % 2 === 1) {
+            commit('increment')
+        }
+    },
+    getters: {
+        sumWithRootCount (state, getters, rootState) {  // here
+          return state.count + rootState.count
+        }
+     }
+}
+```
+- `rootGetters`も同様にアクセス可能。
+- 名前空間内でdispatch(/commit)をするとそのmodule内のactionを参照する。そのためrootのaction(/commit)をdispatchしたいのであれば、第３引数に`{ root: true }`を渡す。
+### createNamespacedHelpers
+- namespaced 化したモジュールをcomponentで展開して使うのは冗長的
+```vue
+methods: {
+  ...mapActions([
+    'some/nested/module/foo', // -> this['some/nested/module/foo']()
+    'some/nested/module/bar' // -> this['some/nested/module/bar']()
+  ])
+}
+// または・・・まだ冗長的
+methods: {
+  ...mapActions('some/nested/module', [
+    'foo', // -> this.foo()
+    'bar' // -> this.bar()
+  ])
+}
+```
+- => createNamespaceHelpers を使う。（複数のモジュールを使いたい場合は`object destructing でrename`した方が良い）
+```vue
+import { createNamespacedHelpers } from 'vuex'
+const { mapState, mapActions } = createNamespacedHelpers('some/nested/module')
+// または
+// const { mapState: AMapState, mapActions: AMapActions } = createNamespacedHelpers('some/nested/moduleA')
+methods: {
+    // `some/nested/module` を調べます
+    ...mapActions([
+      'foo',
+      'bar'
+    ])
+  }
+```
+- 動的にモジュールを登録: `registerModule`（<-> `unregisterModule`） 他の Vue プラグインが、モジュールをアプリケーションのストアに動的に付属させることで、状態の管理に Vuex を活用できるようになる。
+```vue
+// `myModule` モジュールを登録
+store.registerModule('myModule', {
+  // ...
+})
+// ネストされた `nested/myModule` モジュールを登録
+store.registerModule(['nested', 'myModule'], {
+  // ...
+})
+```
+- モジュールが登録されているかどうか: `store.hasModule(moduleName)`
 ### Module化したときの注意点
 - store に記述するstateの値の参照方法に気を付ける。Vue.Storeにそのまま記述するなら、this.state.[Your value]でthisでアクセスしなくてはいけないが、module化したときは単にstate.[Your value]として`this`無しでアクセスしないと、値更新後が`undefined`になる。
 - getter,  action, mutation の参照の仕方が変わる. module化するまえは、`this.$store.commit("increment");`　こんな感じで、モジュール[YourModule]にして分割したら、呼び出し方は、`this.$store.commit("YourModule/increment");`になる。注意したいのは、stateの呼び出し方はこれと異なること。stateはドットで連結してアクセスする。`this.$store.state.count.count` この違いは単に、`stateはオブジェクトのプロパティ`で、`getter, action, mutationは関数`だからである。getter は `this.$store.getters["moduleName/getterName"]`
 - Vuex は `単一ステートツリー` (`single state tree`) を使います。つまり、この単一なオブジェクトはアプリケーションレベルの状態が全て含まれており、"信頼できる唯一の情報源 (`single source of truth`)" として機能します。(通常、アプリケーションごとに1つしかストアは持たない) 次のことをを容易になる。
     1. 単一ステートツリーは状態の特定の部分を見つけること
     2. デバッグのために現在のアプリケーションの状態のスナップショットを撮ること
-- `mapState` はオブジェクトを返すため、`オブジェクトスプレッド演算子`でオブジェクトの内部をマージする。
+- `mapState` はオブジェクトを返すため、`オブジェクトスプレッド演算子`でオブジェクトの内部をマージする
+- `モジュールの再利用するときは、stateを関数で返して新しいインスタンスを作成する`こと。（例えば、`runInNewContext` オプションが `false` または `'once'` のとき、[SSR でステートフルなシングルトンを避けるため](https://ssr.vuejs.org/ja/structure.html#ステートフルなシングルトンの回避)。）
+- vuex のいい感じの使い方を知りたいなら[`これ`](https://github.com/vuejs/vuex/tree/dev/examples/shopping-cart)を参考に
 ### Actions vs Mutations
 - そもそも`Mutation`は`同期`処理でなければならなず、`Action`は`非同期`処理も可能という違いがあります。これは、`Mutationで複数の状態の変更が非同期に行われた場合に挙動が予測不能になるのを防ぐ`という意図がある。(Action で非同期にMutationを呼んだら（`commit`したら）どうなのか=> Actionを呼び出すための`dispatchメソッドはPromiseを返すため、処理の順序を制御することが可能`=>MutationにもPromiseつけて非同期できるから、勘所は`非同期か同期で使い分けるため`)
 - ミューテーションハンドラ：イベントハンドラのようなもので、mutationsのプロパティとして宣言。（commitで呼び出すときにはハンドラ名をタイプとして渡すことで呼びだす）
