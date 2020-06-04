@@ -227,3 +227,25 @@ actions: {
   }
 }
 ```
+### ホットリローディング
+- vuex はデフォルトでミューテーション、モジュールのホットリロードされない。（アクション、ゲッターはホットリロードされる）つまりこれらを変更したら再起動しないと変更が反映されない（？）ミューテーションとモジュールのホットリローディングのために、`store.hotUpdate()` API メソッドを利用する必要がある。コード更新後、新しいインスタンスを自動的に作成して、既存のmutaitons とmodulesに反映させる、ということをする。
+- [`動的モジュールホットリローディング`](https://vuex.vuejs.org/ja/guide/hot-reload.html#%E5%8B%95%E7%9A%84%E3%83%A2%E3%82%B8%E3%83%A5%E3%83%BC%E3%83%AB%E3%83%9B%E3%83%83%E3%83%88%E3%83%AA%E3%83%AD%E3%83%BC%E3%83%87%E3%82%A3%E3%83%B3%E3%82%B0)というものがあり、もしstoreで使用するのが全てmoduleならこちらを使った方が完結にかける。
+```vue
+if (module.hot) {
+  // ホットモジュールとしてアクションとモジュールを受け付けます
+  module.hot.accept(['./mutations', './modules/a'], () => {
+    // 更新されたモジュールをインポートする
+    // babel 6 のモジュール出力のため、ここでは .default を追加しなければならない
+    const newMutations = require('./mutations').default
+    const newModuleA = require('./modules/a').default
+    // 新しいモジュールとミューテーションにスワップ
+    store.hotUpdate({
+      mutations: newMutations,
+      modules: {
+        a: newModuleA
+      }
+    })
+  })
+}
+
+```
